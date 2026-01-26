@@ -9,7 +9,7 @@ Use these commands to validate the milestone-2 UI work before opening a PR. The 
 | Lint | `pnpm lint` | Runs Next.js ESLint rules. |
 | Typecheck | `pnpm typecheck` | Runs `tsc --noEmit`. |
 | Build | `pnpm build` | Ensures Next.js can compile for production. |
-| Optional tests | `pnpm test --if-present` | Only runs if a test script exists. |
+| Tests | `pnpm test` | Runs the Vitest unit suite. |
 | CI dry run | `make ci` | Equivalent of lint + typecheck + build. |
 
 ## Recommended workflow
@@ -17,10 +17,10 @@ Use these commands to validate the milestone-2 UI work before opening a PR. The 
 2. `pnpm lint`
 3. `pnpm typecheck`
 4. `pnpm build`
-5. `pnpm test --if-present`
+5. `pnpm test`
 
 ## CI parity
-- `.github/workflows/ci.yml` runs lint, typecheck, optional tests, and build on PRs to `main`.
+- `.github/workflows/ci.yml` runs lint, typecheck, tests, and build on PRs to `main`.
 - Keep local commands aligned with the workflow to avoid CI surprises.
 
 ## Troubleshooting tips

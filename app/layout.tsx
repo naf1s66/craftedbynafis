@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   // Keep this script static; never interpolate user-controlled data.
   const themeInitScript = `
+    // Keep in sync with THEME_STORAGE_KEY (app/lib/theme.ts).
     const storageKey = 'theme';
     const root = document.documentElement;
     let storedTheme = null;

@@ -10,7 +10,8 @@ const navLinks = [
   { href: '/contact', label: 'Contact' },
 ];
 
-const isActivePath = (pathname: string, href: string) => {
+// Root path needs exact match; other routes can match nested paths.
+export const isActivePath = (pathname: string, href: string) => {
   if (href === '/') return pathname === '/';
   return pathname === href || pathname.startsWith(`${href}/`);
 };

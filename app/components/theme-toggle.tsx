@@ -17,6 +17,7 @@ export default function ThemeToggle() {
     const handleStorage = (event: StorageEvent) => {
       if (event.key !== THEME_STORAGE_KEY) return;
       const root = document.documentElement;
+      // Treat null (cleared storage) as dark default.
       const nextTheme: Theme = event.newValue === 'light' ? 'light' : 'dark';
       root.classList.toggle('dark', nextTheme === 'dark');
       setTheme(nextTheme);
@@ -54,15 +55,15 @@ export default function ThemeToggle() {
   }
 
   const isDark = theme === 'dark';
-  const label = isDark ? 'Dark' : 'Light';
   const nextLabel = isDark ? 'light' : 'dark';
+  const label = `Switch to ${nextLabel}`;
 
   return (
     <button
       type="button"
       onClick={toggleTheme}
       aria-pressed={isDark}
-      aria-label={`Switch to ${nextLabel} mode`}
+      aria-label={label}
       className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-medium text-slate-600 transition-colors hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:text-white"
     >
       {label}

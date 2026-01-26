@@ -42,9 +42,15 @@ Create a `.env.local` (or use your platform's env settings) and set:
 
 - `RESEND_API_KEY` – your Resend API key
 - `CONTACT_TO_EMAIL` – the email address that should receive portfolio contact messages
-- `CONTACT_FROM_EMAIL` – the from address used when sending via Resend
+- `CONTACT_FROM_EMAIL` - the verified sender address used when sending via Resend
+- `CONTACT_ALLOWED_ORIGIN` - optional allowlist origin for contact form POSTs
 
 Until these are configured, `/api/contact` will return HTTP 501 and the contact form acts as a visual placeholder with a documented limitation.
+
+## Contact Form Security
+
+- In-memory rate limiting (5 requests per minute per IP).
+- Optional origin allowlist via `CONTACT_ALLOWED_ORIGIN`.
 
 ## Deployment
 

@@ -22,6 +22,9 @@ Use this checklist to verify the home, navigation, and theme work end-to-end. Ma
 - [ ] Default theme is dark when no preference is set.
 - [ ] Toggling updates the `html` class and persists on refresh.
 - [ ] No noticeable flash of incorrect theme on load.
+- [ ] Verify behavior in private/incognito windows (localStorage availability).
+- [ ] Confirm the UI remains usable if localStorage is blocked (toggle should fail gracefully).
+- [ ] Confirm baseline readability if JavaScript is disabled (static markup still legible).
 
 ## 5. Accessibility smoke
 - [ ] Tab through primary links and CTAs to confirm visible focus states.

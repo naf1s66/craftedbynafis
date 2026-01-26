@@ -27,3 +27,4 @@ Use these commands to validate the milestone-2 UI work before opening a PR. The 
 - If `pnpm build` fails, re-run `pnpm typecheck` to find the first TypeScript error.
 - If ESLint fails, run `pnpm lint` with `-- --fix` only after reviewing the changes.
 - If CSS changes do not show, hard refresh the browser or restart `pnpm dev`.
+- When adding UI tests later, remember to mock `localStorage` for theme persistence.

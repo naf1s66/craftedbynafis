@@ -2,7 +2,9 @@ import './globals.css';
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { ReactNode } from 'react';
+import { THEME_STORAGE_KEY } from './lib/theme';
 import ThemeToggle from './components/theme-toggle';
+import SiteNav from './components/site-nav';
 
 export const metadata: Metadata = {
   title: 'CraftedByNafis',
@@ -10,18 +12,27 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  // Keep this script static; never interpolate user-controlled data.
+  const themeInitScript = `
+    const storageKey = '${THEME_STORAGE_KEY}';
+    const root = document.documentElement;
+    const storedTheme = localStorage.getItem(storageKey);
+    const preferredTheme = storedTheme || 'dark';
+    if (preferredTheme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  `;
+
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-        <Script id="theme-init" strategy="beforeInteractive">
-          {`const storedTheme = localStorage.getItem('theme');
-const root = document.documentElement;
-if (storedTheme === 'light') {
-  root.classList.remove('dark');
-} else {
-  root.classList.add('dark');
-}`}
-        </Script>
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: themeInitScript }}
+        />
         <div className="flex min-h-screen flex-col">
           <header className="border-b border-slate-200 dark:border-slate-800">
             <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
@@ -29,12 +40,7 @@ if (storedTheme === 'light') {
                 CraftedByNafis
               </a>
               <div className="flex items-center gap-4">
-                <nav className="flex gap-4 text-sm text-slate-500 dark:text-slate-300">
-                  <a href="/">Home</a>
-                  <a href="/projects">Projects</a>
-                  <a href="/about">About</a>
-                  <a href="/contact">Contact</a>
-                </nav>
+                <SiteNav />
                 <ThemeToggle />
               </div>
             </div>

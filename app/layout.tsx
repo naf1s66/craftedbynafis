@@ -2,7 +2,6 @@ import './globals.css';
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { ReactNode } from 'react';
-import { THEME_STORAGE_KEY } from './lib/theme';
 import ThemeToggle from './components/theme-toggle';
 import SiteNav from './components/site-nav';
 
@@ -14,12 +13,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   // Keep this script static; never interpolate user-controlled data.
   const themeInitScript = `
-    const storageKey = '${THEME_STORAGE_KEY}';
+    const storageKey = 'theme';
     const root = document.documentElement;
     let storedTheme = null;
     try {
       storedTheme = localStorage.getItem(storageKey);
-    } catch (error) {
+    } catch {
       storedTheme = null;
     }
     const preferredTheme = storedTheme || 'dark';

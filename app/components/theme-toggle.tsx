@@ -13,13 +13,30 @@ export default function ThemeToggle() {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== THEME_STORAGE_KEY) return;
+      const root = document.documentElement;
+      const nextTheme: Theme = event.newValue === 'light' ? 'light' : 'dark';
+      root.classList.toggle('dark', nextTheme === 'dark');
+      setTheme(nextTheme);
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   const toggleTheme = () => {
     const root = document.documentElement;
     const resolvedTheme = theme ?? getCurrentTheme(root);
     const nextTheme: Theme = resolvedTheme === 'dark' ? 'light' : 'dark';
 
     root.classList.toggle('dark', nextTheme === 'dark');
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    } catch {
+      // Ignore storage errors (private mode, quota exceeded, etc.).
+    }
     setTheme(nextTheme);
   };
 

@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       from: fromEmail,
       to: toEmail,
       subject: `New message from CraftedByNafis`,
-      reply_to: email,
+      replyTo: email,
       text: `From: ${name} <${email}>
 
 ${message}`,

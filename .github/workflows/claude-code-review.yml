@@ -1,9 +1,8 @@
 name: Claude Code Review
 
 on:
-  pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
 
 concurrency:
   group: claude-review-${{ github.ref }}
@@ -11,7 +10,10 @@ concurrency:
 
 jobs:
   claude-review-pr:
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
+    if: >
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request != null &&
+      contains(github.event.comment.body, '@claude review')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,6 +26,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: refs/pull/${{ github.event.issue.number }}/merge
 
       - name: Run Claude Code Review
         id: claude-review
@@ -32,7 +35,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+            PR NUMBER: ${{ github.event.issue.number }}
 
             Please review this pull request and provide feedback on:
             - Code quality and best practices

@@ -16,7 +16,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const themeInitScript = `
     const storageKey = '${THEME_STORAGE_KEY}';
     const root = document.documentElement;
-    const storedTheme = localStorage.getItem(storageKey);
+    let storedTheme = null;
+    try {
+      storedTheme = localStorage.getItem(storageKey);
+    } catch (error) {
+      storedTheme = null;
+    }
     const preferredTheme = storedTheme || 'dark';
     if (preferredTheme === 'dark') {
       root.classList.add('dark');

@@ -8,6 +8,20 @@ const fromEmail = process.env.CONTACT_FROM_EMAIL;
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 5;
+
+/**
+ * In-memory rate limit storage.
+ * WARNING: This is not production-ready for serverless deployments.
+ * Serverless functions are ephemeral and restart frequently, which resets this Map
+ * and allows attackers to bypass rate limits by triggering cold starts.
+ *
+ * Before production deployment, replace with persistent storage:
+ * - Vercel KV (@vercel/kv)
+ * - Upstash Redis (@upstash/redis)
+ * - Netlify Blobs (@netlify/blobs)
+ *
+ * See docs/PRODUCTION_DEPLOYMENT.md for implementation details.
+ */
 const rateLimit = new Map<string, { count: number; resetAt: number }>();
 
 const getAllowedOrigins = () => {
@@ -31,6 +45,20 @@ const getRequestOrigin = (request: Request) => {
   }
 };
 
+/**
+ * Extracts client IP from request headers.
+ *
+ * TRUST MODEL: This assumes deployment behind a trusted reverse proxy
+ * (Netlify, Vercel, Cloudflare, etc.) that:
+ * 1. Strips any client-provided x-forwarded-for headers
+ * 2. Adds its own x-forwarded-for with the true client IP
+ *
+ * The first IP in the x-forwarded-for chain is the original client.
+ * Subsequent IPs are intermediate proxies.
+ *
+ * WARNING: Do not deploy without a trusted proxy, as clients could spoof
+ * this header to bypass rate limiting.
+ */
 const getClientIp = (request: Request) => {
   const forwardedFor = request.headers.get('x-forwarded-for');
   if (forwardedFor) {
@@ -39,19 +67,30 @@ const getClientIp = (request: Request) => {
   return request.headers.get('x-real-ip') || 'unknown';
 };
 
-const maybeCleanupRateLimit = (now: number) => {
-  if (Math.random() < 0.1) {
-    for (const [key, entry] of rateLimit.entries()) {
-      if (entry.resetAt <= now) {
-        rateLimit.delete(key);
-      }
-    }
+/**
+ * Lazily cleans up a single expired rate limit entry.
+ *
+ * Strategy: Instead of probabilistic full-map cleanup (which is O(n) in the
+ * critical path), we only clean up the specific entry being checked if it's expired.
+ * This is O(1) and happens naturally during rate limit checks.
+ *
+ * Trade-off: Expired entries for IPs that never make another request will remain
+ * in memory until the serverless function is recycled. Given typical serverless
+ * lifetimes (minutes to hours) and small map sizes, this is acceptable.
+ *
+ * This is a temporary solution pending production migration to persistent storage
+ * (see docs/PRODUCTION_DEPLOYMENT.md).
+ */
+const cleanupExpiredEntry = (key: string, now: number) => {
+  const entry = rateLimit.get(key);
+  if (entry && entry.resetAt <= now) {
+    rateLimit.delete(key);
   }
 };
 
 const checkRateLimit = (key: string) => {
   const now = Date.now();
-  maybeCleanupRateLimit(now);
+  cleanupExpiredEntry(key, now);
 
   let entry = rateLimit.get(key);
   if (!entry || entry.resetAt <= now) {
@@ -137,13 +176,27 @@ export async function POST(request: Request) {
       {
         ok: false,
         message: 'Invalid contact form payload.',
-        errors: isProd ? undefined : parsed.error.flatten(),
+        // Always include errors field for consistent typing, but null in production
+        errors: isProd ? null : parsed.error.flatten(),
       },
       { status: 400 },
     );
   }
 
   const { name, email, message } = parsed.data;
+  /**
+   * Defense-in-depth sanitization to prevent email header injection.
+   *
+   * Primary defense: The Zod schema (contact-schema.ts:15,22) already validates
+   * that name and email contain no newlines via the noNewlines refine function.
+   *
+   * Secondary defense: These replacements provide an additional layer of protection
+   * in case the validation logic changes or is bypassed. This redundancy is intentional.
+   *
+   * - safeName: Used in email body text, newlines replaced with spaces
+   * - safeEmail: Used in reply-to header, newlines stripped entirely
+   * - safeMessage: Carriage returns normalized (newlines are allowed in message body)
+   */
   const safeName = name.replace(/[\r\n]+/g, ' ').trim();
   const safeEmail = email.replace(/[\r\n]+/g, '').trim();
   const safeMessage = message.replace(/\r/g, '');
@@ -161,7 +214,20 @@ export async function POST(request: Request) {
 ${safeMessage}`,
     });
 
-    return NextResponse.json({ ok: true });
+    // Build response headers
+    const headers: HeadersInit = {
+      'X-RateLimit-Limit': RATE_LIMIT_MAX.toString(),
+      'X-RateLimit-Remaining': rateStatus.remaining.toString(),
+      'X-RateLimit-Reset': Math.ceil(rateStatus.resetAt / 1000).toString(),
+    };
+
+    // Add CORS headers for valid origins
+    if (allowedOrigins.length > 0 && requestOrigin && allowedOrigins.includes(requestOrigin)) {
+      headers['Access-Control-Allow-Origin'] = requestOrigin;
+      headers['Vary'] = 'Origin';
+    }
+
+    return NextResponse.json({ ok: true }, { headers });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Resend error:', errorMessage);

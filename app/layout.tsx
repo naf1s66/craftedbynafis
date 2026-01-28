@@ -11,33 +11,10 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  // Keep this script static; never interpolate user-controlled data.
-  const themeInitScript = `
-    // Keep in sync with THEME_STORAGE_KEY (app/lib/theme.ts).
-    const storageKey = 'theme';
-    const root = document.documentElement;
-    let storedTheme = null;
-    try {
-      storedTheme = localStorage.getItem(storageKey);
-    } catch {
-      storedTheme = null;
-    }
-    const preferredTheme = storedTheme || 'dark';
-    if (preferredTheme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  `;
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-        <Script
-          id="theme-init"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{ __html: themeInitScript }}
-        />
+        <Script id="theme-init" src="/theme-init.js" strategy="beforeInteractive" />
         <div className="flex min-h-screen flex-col">
           <header className="border-b border-slate-200 dark:border-slate-800">
             <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">

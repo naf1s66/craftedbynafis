@@ -2,12 +2,12 @@
 
 ## Decision
 
-Implement a dark/light theme toggle using a lightweight client component and an inline initialization script that runs before hydration. Persist the user's preference in `localStorage` and default to dark when no preference exists.
+Implement a dark/light theme toggle using a lightweight client component and a static initialization script (`/public/theme-init.js`) that runs before hydration. Persist the user's preference in `localStorage` and default to dark when no preference exists.
 
 ## Rationale
 
 - A client component keeps the toggle logic isolated while allowing `usePathname` and other client hooks nearby.
-- An inline script (via Next.js `Script` with `beforeInteractive`) prevents flashes by setting the `dark` class before paint.
+- A static script (via Next.js `Script` with `beforeInteractive`) prevents flashes by setting the `dark` class before paint.
 - `localStorage` provides a simple, explicit persistence mechanism without server complexity.
 
 ## Consequences

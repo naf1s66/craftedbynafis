@@ -39,18 +39,36 @@ const getClientIp = (request: Request) => {
   return request.headers.get('x-real-ip') || 'unknown';
 };
 
-const isRateLimited = (key: string) => {
+const maybeCleanupRateLimit = (now: number) => {
+  if (Math.random() < 0.1) {
+    for (const [key, entry] of rateLimit.entries()) {
+      if (entry.resetAt <= now) {
+        rateLimit.delete(key);
+      }
+    }
+  }
+};
+
+const checkRateLimit = (key: string) => {
   const now = Date.now();
-  const entry = rateLimit.get(key);
+  maybeCleanupRateLimit(now);
+
+  let entry = rateLimit.get(key);
   if (!entry || entry.resetAt <= now) {
-    rateLimit.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
+    entry = { count: 0, resetAt: now + RATE_LIMIT_WINDOW_MS };
+    rateLimit.set(key, entry);
   }
+
   if (entry.count >= RATE_LIMIT_MAX) {
-    return true;
+    return { limited: true, remaining: 0, resetAt: entry.resetAt };
   }
+
   entry.count += 1;
-  return false;
+  return {
+    limited: false,
+    remaining: Math.max(RATE_LIMIT_MAX - entry.count, 0),
+    resetAt: entry.resetAt,
+  };
 };
 
 /**
@@ -82,10 +100,23 @@ export async function POST(request: Request) {
   }
 
   const clientIp = getClientIp(request);
-  if (isRateLimited(clientIp)) {
+  const rateStatus = checkRateLimit(clientIp);
+  if (rateStatus.limited) {
+    const retryAfterSeconds = Math.max(
+      1,
+      Math.ceil((rateStatus.resetAt - Date.now()) / 1000),
+    );
     return NextResponse.json(
       { ok: false, message: 'Too many requests. Please try again later.' },
-      { status: 429 },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': retryAfterSeconds.toString(),
+          'X-RateLimit-Limit': RATE_LIMIT_MAX.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': Math.ceil(rateStatus.resetAt / 1000).toString(),
+        },
+      },
     );
   }
 
@@ -113,6 +144,9 @@ export async function POST(request: Request) {
   }
 
   const { name, email, message } = parsed.data;
+  const safeName = name.replace(/[\r\n]+/g, ' ').trim();
+  const safeEmail = email.replace(/[\r\n]+/g, '').trim();
+  const safeMessage = message.replace(/\r/g, '');
 
   const resend = new Resend(resendApiKey);
 
@@ -121,19 +155,16 @@ export async function POST(request: Request) {
       from: fromEmail,
       to: toEmail,
       subject: 'New message from CraftedByNafis',
-      replyTo: email,
-      text: `From: ${name} <${email}>
+      replyTo: safeEmail,
+      text: `From: ${safeName} <${safeEmail}>
 
-${message}`,
+${safeMessage}`,
     });
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('Resend error', error);
-    } else {
-      console.error('Resend error');
-    }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Resend error:', errorMessage);
     return NextResponse.json(
       { ok: false, message: 'Failed to send message.' },
       { status: 500 },

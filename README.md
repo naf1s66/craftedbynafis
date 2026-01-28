@@ -50,7 +50,8 @@ Until these are configured, `/api/contact` will return HTTP 501 and the contact 
 ## Contact Form Security
 
 - In-memory rate limiting (5 requests per minute per IP).
-- Optional origin allowlist via `CONTACT_ALLOWED_ORIGIN`.
+- Optional origin allowlist via `CONTACT_ALLOWED_ORIGIN` (basic CSRF guard).
+- For production, plan to replace in-memory limits with a durable store (Upstash/Redis).
 
 ## Deployment
 

@@ -237,3 +237,33 @@ ${safeMessage}`,
     );
   }
 }
+
+/**
+ * OPTIONS handler for CORS preflight requests.
+ *
+ * Browsers send OPTIONS requests before POST when making cross-origin requests
+ * with custom headers (like Content-Type: application/json).
+ *
+ * This handler validates the origin and returns appropriate CORS headers
+ * to allow the actual POST request to proceed.
+ */
+export async function OPTIONS(request: Request) {
+  const allowedOrigins = getAllowedOrigins();
+  const requestOrigin = getRequestOrigin(request);
+
+  if (allowedOrigins.length > 0 && requestOrigin && allowedOrigins.includes(requestOrigin)) {
+    return new NextResponse(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': requestOrigin,
+        'Access-Control-Allow-Methods': 'POST',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Max-Age': '86400', // 24 hours
+        'Vary': 'Origin',
+      },
+    });
+  }
+
+  // Invalid origin - reject preflight
+  return new NextResponse(null, { status: 403 });
+}

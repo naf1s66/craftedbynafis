@@ -1,6 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { ReactNode } from 'react';
+import ThemeToggle from './components/theme-toggle';
+import SiteNav from './components/site-nav';
 
 export const metadata: Metadata = {
   title: 'CraftedByNafis',
@@ -9,27 +11,32 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen bg-slate-950 text-slate-100">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(()=>{const e="theme",t=document.documentElement;let r=null;try{r=localStorage.getItem(e)}catch{r=null}const l=r||"dark";"dark"===l?t.classList.add("dark"):t.classList.remove("dark")})();`,
+          }}
+        />
+      </head>
+      <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
         <div className="flex min-h-screen flex-col">
-          <header className="border-b border-slate-800">
+          <header className="border-b border-slate-200 dark:border-slate-800">
             <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
               <a href="/" className="font-semibold tracking-tight">
                 CraftedByNafis
               </a>
-              <nav className="flex gap-4 text-sm text-slate-300">
-                <a href="/">Home</a>
-                <a href="/projects">Projects</a>
-                <a href="/about">About</a>
-                <a href="/contact">Contact</a>
-              </nav>
+              <div className="flex items-center gap-4">
+                <SiteNav />
+                <ThemeToggle />
+              </div>
             </div>
           </header>
           <main className="flex-1">
             {children}
           </main>
-          <footer className="border-t border-slate-800">
-            <div className="mx-auto max-w-5xl px-4 py-4 text-xs text-slate-500">
+          <footer className="border-t border-slate-200 dark:border-slate-800">
+            <div className="mx-auto max-w-5xl px-4 py-4 text-xs text-slate-500 dark:text-slate-400">
               © {new Date().getFullYear()} CraftedByNafis. All rights reserved.
             </div>
           </footer>

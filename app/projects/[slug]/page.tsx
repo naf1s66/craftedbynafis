@@ -4,6 +4,10 @@ import { projects } from '../../../content/projects';
 
 type Props = { params: { slug: string } };
 
+export function generateStaticParams() {
+  return projects.map((project) => ({ slug: project.slug }));
+}
+
 export default function ProjectDetailPage({ params }: Props) {
   const project = projects.find((p) => p.slug === params.slug);
 
@@ -19,12 +23,12 @@ export default function ProjectDetailPage({ params }: Props) {
       : 'Active';
 
   return (
-    <section className="mx-auto max-w-3xl px-4 py-12 space-y-4">
-      <div className="space-y-2">
+    <section className="mx-auto max-w-4xl px-4 py-12 space-y-8">
+      <div className="space-y-3">
         <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
           {statusLabel}
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-100">
           {project.name}
         </h1>
         <p className="text-sm text-slate-300">{project.shortDescription}</p>
@@ -37,6 +41,27 @@ export default function ProjectDetailPage({ params }: Props) {
               {tech}
             </span>
           ))}
+        </div>
+      </div>
+
+      <div className="grid gap-6 rounded-2xl border border-slate-800 bg-slate-900/40 p-6 md:grid-cols-[2fr_1fr]">
+        <div className="space-y-3">
+          <h2 className="text-base font-semibold text-slate-100">Overview</h2>
+          <p className="text-sm text-slate-300">{project.shortDescription}</p>
+        </div>
+        <div className="space-y-4 text-xs text-slate-300">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+              Role
+            </p>
+            <p className="text-sm text-slate-200">{project.role}</p>
+          </div>
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+              Timeframe
+            </p>
+            <p className="text-sm text-slate-200">{project.timeframe}</p>
+          </div>
         </div>
       </div>
 

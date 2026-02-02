@@ -1,5 +1,14 @@
 export type ProjectType = 'frontend' | 'backend' | 'fullstack';
 
+export type CaseStudySection = {
+  title: string;
+  bullets: string[];
+};
+
+export type CaseStudy = {
+  sections: CaseStudySection[];
+};
+
 export type Project = {
   slug: string;
   name: string;
@@ -14,6 +23,7 @@ export type Project = {
     docs?: string;
   };
   highlightBullets: string[];
+  caseStudy?: CaseStudy;
   status?: 'active' | 'planned' | 'in-progress';
 };
 
@@ -37,6 +47,47 @@ export const projects: Project[] = [
       'JWT + OAuth-ready authentication, Swagger/OpenAPI, Jest + Supertest.',
       'CI workflows, ADRs, and detailed milestone documentation.',
     ],
+    caseStudy: {
+      sections: [
+        {
+          title: 'Problem',
+          bullets: [
+            'Needed a backend-first task system that could scale beyond a UI demo into a real API-driven product.',
+            'Wanted predictable, milestone-driven delivery to ship core workflows (auth, boards, tasks) before polish.',
+          ],
+        },
+        {
+          title: 'Solution',
+          bullets: [
+            'Designed an Express API as the source of truth and layered a Next.js client for Kanban planning.',
+            'Implemented JWT auth with OAuth-ready seams plus Swagger/OpenAPI docs for fast handoffs.',
+            'Tracked delivery with scoped milestones, ADRs, and checklists to show progress transparently.',
+          ],
+        },
+        {
+          title: 'Architecture',
+          bullets: [
+            'Next.js frontend consumes the Express REST API for board, task, and auth workflows.',
+            'PostgreSQL + Prisma handle relational task data and migrations.',
+            'Dockerized services keep local dev, testing, and future deployment consistent.',
+          ],
+        },
+        {
+          title: 'Testing',
+          bullets: [
+            'API routes and auth flows are covered with Jest + Supertest integration tests.',
+            'Test coverage prioritizes task lifecycle, permissions, and edge cases before UI polish.',
+          ],
+        },
+        {
+          title: 'CI',
+          bullets: [
+            'GitHub Actions run lint, test, and build checks on every push and pull request.',
+            'Milestone checklists and docs are reviewed alongside CI status to keep delivery on track.',
+          ],
+        },
+      ],
+    },
     status: 'in-progress',
   },
   {

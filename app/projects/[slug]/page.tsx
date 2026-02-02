@@ -100,11 +100,18 @@ export default function ProjectDetailPage({ params }: Props) {
             Note: TaskForge deployment in progress
           </h2>
           <p>
-            TaskForge is still being wired for deployment. Demo and docs links
-            are currently placeholders and will be updated once the full stack is
-            live. The portfolio intentionally documents this gap so reviewers can
+            TaskForge is still being wired for deployment, so the demo and docs
+            links are placeholders. The portfolio calls this out so reviewers can
             see the deployment work in progress.
           </p>
+          {project.links.github && (
+            <Link
+              href={project.links.github}
+              className="inline-flex items-center text-xs font-semibold text-amber-200 hover:text-amber-100"
+            >
+              Follow TaskForge on GitHub for code and deployment updates
+            </Link>
+          )}
         </div>
       )}
 

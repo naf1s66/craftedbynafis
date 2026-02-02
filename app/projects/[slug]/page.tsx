@@ -74,6 +74,26 @@ export default function ProjectDetailPage({ params }: Props) {
         </ul>
       </div>
 
+      {project.caseStudy && (
+        <div className="space-y-4 text-sm text-slate-200">
+          <h2 className="text-base font-semibold text-slate-100">Case study</h2>
+          <div className="space-y-4">
+            {project.caseStudy.sections.map((section) => (
+              <div key={section.title} className="space-y-2">
+                <h3 className="text-sm font-semibold text-slate-100">
+                  {section.title}
+                </h3>
+                <ul className="list-disc space-y-1 pl-5 text-xs text-slate-300">
+                  {section.bullets.map((bullet) => (
+                    <li key={bullet}>{bullet}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {project.slug === 'taskforge' && (
         <div className="space-y-2 rounded-lg border border-amber-500/40 bg-amber-950/20 p-4 text-xs text-amber-100">
           <h2 className="text-sm font-semibold text-amber-200">
